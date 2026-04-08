@@ -154,14 +154,14 @@
             <p class="subtitle">สถาบันราชประชาสมาสัย (RPSI Helpdesk)<br/>กรุณาเลือกระบบที่ท่านต้องการแจ้งซ่อม</p>
             
             <div class="btn-grid">
-                <button class="btn-service btn-electrical" onclick="navigateTo(
+                <button type="button" class="btn-service btn-electrical" onclick="navigateTo(
                     'https://rajpracha.ddc.moph.go.th/Rpsi_pages/faifar/index.aspx', 
                     'http://10.10.5.103/Rpsi_pages/faifar/index.aspx'
                 )">
                     <i class="fas fa-bolt"></i> แจ้งซ่อมระบบไฟฟ้า ประปา ซ่อมบำรุง
                 </button>
 
-                <button class="btn-service btn-it" onclick="navigateTo(
+                <button type="button" class="btn-service btn-it" onclick="navigateTo(
                     'https://rajpracha.ddc.moph.go.th/Rpsi_pages/it/index.aspx', 
                     'http://10.10.5.103/Rpsi_pages/it/index.aspx'
                 )">
@@ -179,31 +179,46 @@
     </div>
 
     <script>
-        async function navigateTo(targetUrl, fallbackUrl) {
+        function navigateTo(targetUrl, fallbackUrl) {
             // 1. ซ่อนเมนูหลัก และแสดงหน้า Loading
             document.getElementById('main-menu').style.display = 'none';
             document.getElementById('loading-screen').style.display = 'flex';
 
-            // 2. ฟังก์ชันจับเวลา Timeout (ลดเหลือ 3.5 วินาทีเพื่อไม่ให้รอนานเกินไป)
-            const timeout = (ms) => new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), ms));
+            let isNavigating = false;
 
-            try {
-                // 3. วิ่งแข่งกันระหว่าง Fetch (Domain จริง) กับ Timeout
-                await Promise.race([
-                    fetch(targetUrl, {
-                        method: 'HEAD',
-                        mode: 'no-cors',
-                        cache: 'no-store'
-                    }),
-                    timeout(3500)
-                ]);
-
-                // ถ้าสำเร็จ (แสดงว่าออกเน็ต Public หรือ Domain DNS ทำงาน) พาไปลิงก์ https
-                window.location.href = targetUrl;
-            } catch (e) {
-                // ถ้า Timeout หรือ Fetch พัง (ติด Intranet) พาไปลิงก์ Internal IP
-                window.location.href = fallbackUrl;
+            // ฟังก์ชันสำหรับพาย้ายหน้าเว็บ (ป้องกันการเรียกซ้ำสองรอบ)
+            function go(url) {
+                if (!isNavigating) {
+                    isNavigating = true;
+                    window.location.href = url;
+                }
             }
+
+            // 2. ใช้เทคนิค "แอบโหลดรูปลง Background" (Image Ping)
+            // ดึง Domain หลักมาต่อท้ายด้วย path รูปโลโก้ + ใส่เวลาสุ่มเพื่อไม่ให้ใช้ Cache
+            const targetDomain = new URL(targetUrl).origin;
+            const testImgUrl = targetDomain + '/images/login_logo.png?t=' + new Date().getTime();
+            
+            const img = new Image();
+
+            // ถ้าโหลดรูปสำเร็จอย่างรวดเร็ว = เข้าโดเมนหลัก (Public) ได้
+            img.onload = function() {
+                go(targetUrl);
+            };
+
+            // ถ้าโหลดรูปพัง (DNS หาไม่เจอ หรือ Firewall บล็อค) = ให้เด้งไป IP ภายในทันที
+            img.onerror = function() {
+                go(fallbackUrl);
+            };
+
+            // 3. ตั้งเวลา Timeout สูงสุดแค่ 1.5 วินาที (1500 ms) 
+            // ถ้านานกว่านี้ถือว่าเน็ตช้าเกินไป หรือติด Intranet ให้วิ่งไป IP ภายในเลย ไม่ต้องให้ user รอนาน
+            setTimeout(function() {
+                go(fallbackUrl);
+            }, 1500);
+
+            // 4. สั่งให้เริ่มโหลดรูปทดสอบ
+            img.src = testImgUrl;
         }
     </script>
 </body>
