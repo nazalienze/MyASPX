@@ -101,7 +101,7 @@
             box-shadow: 0 12px 25px rgba(10, 110, 49, 0.4);
         }
 
-        /* ⭐️ หน้าจอ Loading (ซ่อนไว้เป็นค่าเริ่มต้น) ⭐️ */
+        /* ⭐️ หน้าจอ Loading ⭐️ */
         #loading-screen {
             display: none;
             flex-direction: column;
@@ -172,8 +172,8 @@
 
         <div id="loading-screen">
             <div class="loader"></div>
-            <div class="loading-text">กำลังตรวจสอบเส้นทางเครือข่าย...</div>
-            <div class="loading-subtext">ระบบกำลังค้นหาเส้นทางที่เร็วที่สุด กรุณารอสักครู่</div>
+            <div class="loading-text">กำลังนำท่านเข้าสู่ระบบ...</div>
+            <div class="loading-subtext">กรุณารอสักครู่ ระบบกำลังค้นหาเส้นทางที่ดีที่สุด</div>
         </div>
 
     </div>
@@ -186,7 +186,7 @@
 
             let isNavigating = false;
 
-            // ฟังก์ชันสำหรับพาย้ายหน้าเว็บ
+            // ฟังก์ชันสำหรับพาย้ายหน้าเว็บ (ป้องกันการย้ายซ้ำ)
             function go(url) {
                 if (!isNavigating) {
                     isNavigating = true;
@@ -194,31 +194,31 @@
                 }
             }
 
-            // 2. ปรับแผนใหม่: ทดสอบเข้า IP ภายในก่อน (10.10.5.103)
-            const internalDomain = new URL(fallbackUrl).origin;
-            // ดึงไฟล์ favicon หรือรูปเล็กๆ จาก server ภายใน
-            const testInternalUrl = internalDomain + '/favicon.ico?t=' + new Date().getTime();
+            // 2. ตรวจสอบโดเมนภายนอกก่อน (นอกไปใน)
+            // ใช้ favicon.ico เพราะเป็นไฟล์ขนาดเล็กและมีอยู่แทบทุกเว็บ
+            const externalDomain = new URL(targetUrl).origin;
+            const testExternalUrl = externalDomain + '/favicon.ico?t=' + new Date().getTime();
             
             const img = new Image();
 
-            // ถ้าโหลดไฟล์จาก IP ภายในสำเร็จ = ผู้ใช้อยู่ในเครือข่ายโรงพยาบาล
+            // ถ้าโหลดไฟล์จากภายนอกสำเร็จ = เครือข่ายปกติ / อยู่ข้างนอก
             img.onload = function() {
-                go(fallbackUrl); // ไปที่ 10.10.5.103
+                go(targetUrl); // ไปที่โดเมนหลัก
             };
 
-            // ถ้าโหลดไฟล์จาก IP ภายในล้มเหลว = ผู้ใช้อยู่นอกโรงพยาบาล
+            // ถ้าโหลดไฟล์ล้มเหลว (บล็อค หรือหาไม่เจอ) = น่าจะอยู่ในเครือข่ายภายใน
             img.onerror = function() {
-                go(targetUrl); // ลองไปที่โดเมนภายนอก
+                go(fallbackUrl); // สลับไป IP ภายใน
             };
 
-            // 3. ตั้งเวลา Timeout 1 วินาที (1000 ms) 
-            // ถ้านานกว่านี้ถือว่าไม่ได้อยู่ในวง LAN แน่นอน ให้ลองออกข้างนอกเลย
+            // 3. ตั้ง Timeout ไว้ 1.5 วินาที
+            // ถ้านานกว่านี้ถือว่าเน็ตนอกมีปัญหา ให้เด้งเข้า IP ภายในเลย
             setTimeout(function() {
-                go(targetUrl);
-            }, 1000);
+                go(fallbackUrl);
+            }, 1500);
 
-            // 4. สั่งให้เริ่มโหลดรูปทดสอบจาก IP ภายใน
-            img.src = testInternalUrl;
+            // 4. เริ่มโหลดเพื่อทดสอบการเชื่อมต่อ
+            img.src = testExternalUrl;
         }
     </script>
 </body>
