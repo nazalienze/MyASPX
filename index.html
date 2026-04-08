@@ -81,7 +81,6 @@
             font-size: 1.8rem;
         }
 
-        /* สีปุ่มแจ้งซ่อมไฟฟ้า (สีส้ม/เหลือง) */
         .btn-electrical {
             background: linear-gradient(135deg, #f39c12 0%, #d35400 100%);
             box-shadow: 0 8px 20px rgba(211, 84, 0, 0.3);
@@ -91,7 +90,6 @@
             box-shadow: 0 12px 25px rgba(211, 84, 0, 0.4);
         }
 
-        /* สีปุ่มแจ้งซ่อมคอมพิวเตอร์ (สีเขียว RPSI) */
         .btn-it {
             background: linear-gradient(135deg, #0A6E31 0%, #064d22 100%);
             box-shadow: 0 8px 20px rgba(10, 110, 49, 0.3);
@@ -142,6 +140,47 @@
             50% { opacity: 1; }
             100% { opacity: 0.6; }
         }
+
+        /* ⭐️ หน้าจอ Error ⭐️ */
+        #error-screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .error-icon {
+            font-size: 4rem;
+            color: #e74c3c;
+            margin-bottom: 15px;
+        }
+
+        .error-text {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: #e74c3c;
+            margin-bottom: 10px;
+        }
+
+        .error-subtext {
+            font-size: 1rem;
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .btn-back {
+            background: #666;
+            color: #fff;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1.1rem;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .btn-back:hover {
+            background: #444;
+        }
     </style>
 </head>
 <body>
@@ -172,21 +211,38 @@
 
         <div id="loading-screen">
             <div class="loader"></div>
-            <div class="loading-text">กำลังนำท่านเข้าสู่ระบบ...</div>
-            <div class="loading-subtext">กรุณารอสักครู่ ระบบกำลังค้นหาเส้นทางที่ดีที่สุด</div>
+            <div class="loading-text" id="loading-title">กำลังนำท่านเข้าสู่ระบบ...</div>
+            <div class="loading-subtext" id="loading-desc">กรุณารอสักครู่</div>
+        </div>
+
+        <div id="error-screen">
+            <i class="fas fa-exclamation-triangle error-icon"></i>
+            <div class="error-text">ไม่สามารถเชื่อมต่อระบบได้ในขณะนี้</div>
+            <div class="error-subtext">ไม่พบเส้นทางการเชื่อมต่อทั้งภายในและภายนอก<br/>กรุณาตรวจสอบอินเทอร์เน็ตของท่าน หรือลองใหม่อีกครั้ง</div>
+            <button class="btn-back" onclick="resetMenu()">
+                <i class="fas fa-undo"></i> กลับหน้าหลัก
+            </button>
         </div>
 
     </div>
 
     <script>
+        function resetMenu() {
+            document.getElementById('error-screen').style.display = 'none';
+            document.getElementById('loading-screen').style.display = 'none';
+            document.getElementById('main-menu').style.display = 'block';
+        }
+
         function navigateTo(targetUrl, fallbackUrl) {
-            // 1. ซ่อนเมนูหลัก และแสดงหน้า Loading
             document.getElementById('main-menu').style.display = 'none';
+            document.getElementById('error-screen').style.display = 'none';
             document.getElementById('loading-screen').style.display = 'flex';
 
             let isNavigating = false;
+            const textTitle = document.getElementById('loading-title');
+            const textDesc = document.getElementById('loading-desc');
 
-            // ฟังก์ชันสำหรับพาย้ายหน้าเว็บ (ป้องกันการย้ายซ้ำ)
+            // ฟังก์ชันสำหรับพาย้ายหน้าเว็บ
             function go(url) {
                 if (!isNavigating) {
                     isNavigating = true;
@@ -194,31 +250,82 @@
                 }
             }
 
-            // 2. ตรวจสอบโดเมนภายนอกก่อน (นอกไปใน)
-            // ใช้ favicon.ico เพราะเป็นไฟล์ขนาดเล็กและมีอยู่แทบทุกเว็บ
-            const externalDomain = new URL(targetUrl).origin;
-            const testExternalUrl = externalDomain + '/favicon.ico?t=' + new Date().getTime();
-            
-            const img = new Image();
+            // ฟังก์ชันกลางสำหรับเช็ค URL (ตั้งเวลา timeout 5 วินาที)
+            function checkConnection(testUrlPath, onSuccess, onFail) {
+                if (isNavigating) return;
 
-            // ถ้าโหลดไฟล์จากภายนอกสำเร็จ = เครือข่ายปกติ / อยู่ข้างนอก
-            img.onload = function() {
-                go(targetUrl); // ไปที่โดเมนหลัก
-            };
+                const domain = new URL(testUrlPath).origin;
+                const testImgUrl = domain + '/favicon.ico?t=' + new Date().getTime();
+                const img = new Image();
+                let isResolved = false;
 
-            // ถ้าโหลดไฟล์ล้มเหลว (บล็อค หรือหาไม่เจอ) = น่าจะอยู่ในเครือข่ายภายใน
-            img.onerror = function() {
-                go(fallbackUrl); // สลับไป IP ภายใน
-            };
+                // กำหนดเวลา 5 วินาที
+                const timer = setTimeout(function() {
+                    if (!isResolved) {
+                        isResolved = true;
+                        img.src = ""; // ยกเลิกการโหลดรูป
+                        onFail();
+                    }
+                }, 5000);
 
-            // 3. ตั้ง Timeout ไว้ 1.5 วินาที
-            // ถ้านานกว่านี้ถือว่าเน็ตนอกมีปัญหา ให้เด้งเข้า IP ภายในเลย
-            setTimeout(function() {
-                go(fallbackUrl);
-            }, 1500);
+                img.onload = function() {
+                    if (!isResolved) {
+                        isResolved = true;
+                        clearTimeout(timer);
+                        onSuccess();
+                    }
+                };
 
-            // 4. เริ่มโหลดเพื่อทดสอบการเชื่อมต่อ
-            img.src = testExternalUrl;
+                img.onerror = function() {
+                    if (!isResolved) {
+                        isResolved = true;
+                        clearTimeout(timer);
+                        onFail();
+                    }
+                };
+
+                img.src = testImgUrl;
+            }
+
+            // ขั้นตอนที่ 1: ลอง IP ภายในก่อน (10.10.5.103)
+            function step1() {
+                textTitle.innerText = "กำลังตรวจสอบเครือข่ายภายใน...";
+                textDesc.innerText = "ใช้เวลาประมาณ 5 วินาที";
+                checkConnection(fallbackUrl, 
+                    () => go(fallbackUrl), // สำเร็จ
+                    step2                  // ล้มเหลว ไปขั้น 2
+                );
+            }
+
+            // ขั้นตอนที่ 2: ลองโดเมนภายนอก
+            function step2() {
+                textTitle.innerText = "กำลังตรวจสอบเครือข่ายภายนอก...";
+                textDesc.innerText = "ใช้เวลาประมาณ 5 วินาที";
+                checkConnection(targetUrl, 
+                    () => go(targetUrl),   // สำเร็จ
+                    step3                  // ล้มเหลว ไปขั้น 3
+                );
+            }
+
+            // ขั้นตอนที่ 3: วนกลับมาลอง IP ภายในอีกครั้ง
+            function step3() {
+                textTitle.innerText = "กำลังพยายามเชื่อมต่ออีกครั้ง...";
+                textDesc.innerText = "ใช้เวลาประมาณ 5 วินาที";
+                checkConnection(fallbackUrl, 
+                    () => go(fallbackUrl), // สำเร็จ
+                    showError              // ล้มเหลว แสดง Error
+                );
+            }
+
+            // ขั้นตอนที่ 4: แสดง Error
+            function showError() {
+                if (isNavigating) return;
+                document.getElementById('loading-screen').style.display = 'none';
+                document.getElementById('error-screen').style.display = 'flex';
+            }
+
+            // เริ่มต้นการทำงานที่ขั้น 1
+            step1();
         }
     </script>
 </body>
