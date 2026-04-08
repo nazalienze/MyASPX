@@ -173,7 +173,7 @@
         <div id="loading-screen">
             <div class="loader"></div>
             <div class="loading-text">กำลังตรวจสอบเส้นทางเครือข่าย...</div>
-            <div class="loading-subtext">ระบบกำลังตรวจสอบเส้นทางการเชื่อมต่อ กรุณารอสักครู่</div>
+            <div class="loading-subtext">ระบบกำลังค้นหาเส้นทางที่เร็วที่สุด กรุณารอสักครู่</div>
         </div>
 
     </div>
@@ -186,7 +186,7 @@
 
             let isNavigating = false;
 
-            // ฟังก์ชันสำหรับพาย้ายหน้าเว็บ (ป้องกันการเรียกซ้ำสองรอบ)
+            // ฟังก์ชันสำหรับพาย้ายหน้าเว็บ
             function go(url) {
                 if (!isNavigating) {
                     isNavigating = true;
@@ -194,31 +194,31 @@
                 }
             }
 
-            // 2. ใช้เทคนิค "แอบโหลดรูปลง Background" (Image Ping)
-            // ดึง Domain หลักมาต่อท้ายด้วย path รูปโลโก้ + ใส่เวลาสุ่มเพื่อไม่ให้ใช้ Cache
-            const targetDomain = new URL(targetUrl).origin;
-            const testImgUrl = targetDomain + '/images/login_logo.png?t=' + new Date().getTime();
+            // 2. ปรับแผนใหม่: ทดสอบเข้า IP ภายในก่อน (10.10.5.103)
+            const internalDomain = new URL(fallbackUrl).origin;
+            // ดึงไฟล์ favicon หรือรูปเล็กๆ จาก server ภายใน
+            const testInternalUrl = internalDomain + '/favicon.ico?t=' + new Date().getTime();
             
             const img = new Image();
 
-            // ถ้าโหลดรูปสำเร็จอย่างรวดเร็ว = เข้าโดเมนหลัก (Public) ได้
+            // ถ้าโหลดไฟล์จาก IP ภายในสำเร็จ = ผู้ใช้อยู่ในเครือข่ายโรงพยาบาล
             img.onload = function() {
-                go(targetUrl);
+                go(fallbackUrl); // ไปที่ 10.10.5.103
             };
 
-            // ถ้าโหลดรูปพัง (DNS หาไม่เจอ หรือ Firewall บล็อค) = ให้เด้งไป IP ภายในทันที
+            // ถ้าโหลดไฟล์จาก IP ภายในล้มเหลว = ผู้ใช้อยู่นอกโรงพยาบาล
             img.onerror = function() {
-                go(fallbackUrl);
+                go(targetUrl); // ลองไปที่โดเมนภายนอก
             };
 
-            // 3. ตั้งเวลา Timeout สูงสุดแค่ 1.5 วินาที (1500 ms) 
-            // ถ้านานกว่านี้ถือว่าเน็ตช้าเกินไป หรือติด Intranet ให้วิ่งไป IP ภายในเลย ไม่ต้องให้ user รอนาน
+            // 3. ตั้งเวลา Timeout 1 วินาที (1000 ms) 
+            // ถ้านานกว่านี้ถือว่าไม่ได้อยู่ในวง LAN แน่นอน ให้ลองออกข้างนอกเลย
             setTimeout(function() {
-                go(fallbackUrl);
-            }, 1500);
+                go(targetUrl);
+            }, 1000);
 
-            // 4. สั่งให้เริ่มโหลดรูปทดสอบ
-            img.src = testImgUrl;
+            // 4. สั่งให้เริ่มโหลดรูปทดสอบจาก IP ภายใน
+            img.src = testInternalUrl;
         }
     </script>
 </body>
