@@ -114,7 +114,7 @@
             border-top: 8px solid #0A6E31;
             border-radius: 50%;
             animation: spin 1s linear infinite;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
         }
 
         @keyframes spin {
@@ -129,16 +129,16 @@
             margin-bottom: 10px;
         }
 
+        .countdown-text {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #d35400;
+            margin: 15px 0;
+        }
+
         .loading-subtext {
             font-size: 1rem;
             color: #666;
-            animation: pulse 1.5s infinite;
-        }
-
-        @keyframes pulse {
-            0% { opacity: 0.6; }
-            50% { opacity: 1; }
-            100% { opacity: 0.6; }
         }
 
         /* ⭐️ หน้าจอ Error ⭐️ */
@@ -168,19 +168,35 @@
             margin-bottom: 30px;
         }
 
-        .btn-back {
-            background: #666;
-            color: #fff;
-            border: none;
-            padding: 12px 30px;
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            width: 100%;
+            justify-content: center;
+        }
+
+        .btn-action {
+            padding: 12px 25px;
             font-size: 1.1rem;
             border-radius: 10px;
             cursor: pointer;
             transition: all 0.3s ease;
+            border: none;
+            color: #fff;
+            font-family: 'Prompt', sans-serif;
+            font-weight: 500;
         }
-        .btn-back:hover {
-            background: #444;
+
+        .btn-retry {
+            background: #0A6E31;
         }
+        .btn-retry:hover { background: #064d22; }
+
+        .btn-back {
+            background: #666;
+        }
+        .btn-back:hover { background: #444; }
+
     </style>
 </head>
 <body>
@@ -193,14 +209,14 @@
             <p class="subtitle">สถาบันราชประชาสมาสัย (RPSI Helpdesk)<br/>กรุณาเลือกระบบที่ท่านต้องการแจ้งซ่อม</p>
             
             <div class="btn-grid">
-                <button type="button" class="btn-service btn-electrical" onclick="navigateTo(
+                <button type="button" class="btn-service btn-electrical" onclick="startNavigation(
                     'https://rajpracha.ddc.moph.go.th/Rpsi_pages/faifar/index.aspx', 
                     'http://10.10.5.103/Rpsi_pages/faifar/index.aspx'
                 )">
                     <i class="fas fa-bolt"></i> แจ้งซ่อมระบบไฟฟ้า ประปา ซ่อมบำรุง
                 </button>
 
-                <button type="button" class="btn-service btn-it" onclick="navigateTo(
+                <button type="button" class="btn-service btn-it" onclick="startNavigation(
                     'https://rajpracha.ddc.moph.go.th/Rpsi_pages/it/index.aspx', 
                     'http://10.10.5.103/Rpsi_pages/it/index.aspx'
                 )">
@@ -212,119 +228,137 @@
         <div id="loading-screen">
             <div class="loader"></div>
             <div class="loading-text" id="loading-title">กำลังนำท่านเข้าสู่ระบบ...</div>
+            <div class="countdown-text" id="loading-timer">5</div>
             <div class="loading-subtext" id="loading-desc">กรุณารอสักครู่</div>
         </div>
 
         <div id="error-screen">
-            <i class="fas fa-exclamation-triangle error-icon"></i>
+            <i class="fas fa-wifi error-icon" style="color: #e74c3c; font-size: 4rem; margin-bottom: 15px;"></i>
             <div class="error-text">ไม่สามารถเชื่อมต่อระบบได้ในขณะนี้</div>
             <div class="error-subtext">ไม่พบเส้นทางการเชื่อมต่อทั้งภายในและภายนอก<br/>กรุณาตรวจสอบอินเทอร์เน็ตของท่าน หรือลองใหม่อีกครั้ง</div>
-            <button class="btn-back" onclick="resetMenu()">
-                <i class="fas fa-undo"></i> กลับหน้าหลัก
-            </button>
+            
+            <div class="action-buttons">
+                <button class="btn-action btn-retry" onclick="retryNavigation()">
+                    <i class="fas fa-redo"></i> ลองใหม่อีกครั้ง
+                </button>
+                <button class="btn-action btn-back" onclick="resetMenu()">
+                    <i class="fas fa-home"></i> กลับหน้าหลัก
+                </button>
+            </div>
         </div>
 
     </div>
 
     <script>
+        // ตัวแปรเก็บค่าเผื่อกรณี User กด "ลองใหม่อีกครั้ง"
+        let currentTargetUrl = "";
+        let currentFallbackUrl = "";
+        let countdownInterval;
+
         function resetMenu() {
+            clearInterval(countdownInterval);
             document.getElementById('error-screen').style.display = 'none';
             document.getElementById('loading-screen').style.display = 'none';
             document.getElementById('main-menu').style.display = 'block';
         }
 
-        function navigateTo(targetUrl, fallbackUrl) {
+        function startNavigation(targetUrl, fallbackUrl) {
+            currentTargetUrl = targetUrl;
+            currentFallbackUrl = fallbackUrl;
+            executeNavigation();
+        }
+
+        function retryNavigation() {
+            executeNavigation();
+        }
+
+        function executeNavigation() {
+            // ซ่อนหน้าอื่น แสดงหน้า Loading
             document.getElementById('main-menu').style.display = 'none';
             document.getElementById('error-screen').style.display = 'none';
             document.getElementById('loading-screen').style.display = 'flex';
 
-            let isNavigating = false;
             const textTitle = document.getElementById('loading-title');
             const textDesc = document.getElementById('loading-desc');
+            const textTimer = document.getElementById('loading-timer');
 
-            // ฟังก์ชันสำหรับพาย้ายหน้าเว็บ
+            let isNavigating = false;
+
+            // พาย้ายหน้าเว็บ
             function go(url) {
                 if (!isNavigating) {
                     isNavigating = true;
+                    clearInterval(countdownInterval);
                     window.location.href = url;
                 }
             }
 
-            // ฟังก์ชันกลางสำหรับเช็ค URL (ตั้งเวลา timeout 5 วินาที)
-            function checkConnection(testUrlPath, onSuccess, onFail) {
+            // ฟังก์ชันตรวจสอบเครือข่ายด้วย Fetch API แบบจับเวลา
+            function checkConnection(url, stepName, onSuccess, onFail) {
                 if (isNavigating) return;
 
-                const domain = new URL(testUrlPath).origin;
-                const testImgUrl = domain + '/favicon.ico?t=' + new Date().getTime();
-                const img = new Image();
-                let isResolved = false;
+                let timeLeft = 5;
+                textTitle.innerText = `กำลังตรวจสอบการเชื่อมต่อ...`;
+                textDesc.innerText = `พยายามเชื่อมต่อผ่าน: ${stepName}`;
+                textTimer.innerText = timeLeft;
 
-                // กำหนดเวลา 5 วินาที
-                const timer = setTimeout(function() {
-                    if (!isResolved) {
-                        isResolved = true;
-                        img.src = ""; // ยกเลิกการโหลดรูป
-                        onFail();
+                clearInterval(countdownInterval);
+                
+                // เริ่มนับถอยหลังหน้าจอ
+                countdownInterval = setInterval(() => {
+                    timeLeft--;
+                    if (timeLeft >= 0) {
+                        textTimer.innerText = timeLeft;
                     }
+                }, 1000);
+
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => {
+                    controller.abort(); // ยกเลิกการดึงข้อมูลเมื่อครบ 5 วิ
                 }, 5000);
 
-                img.onload = function() {
-                    if (!isResolved) {
-                        isResolved = true;
-                        clearTimeout(timer);
+                // ใช้ fetch โหมด no-cors เพื่อเช็คว่า Network เข้าถึงได้หรือไม่โดยไม่สนกฏข้ามโดเมน
+                fetch(url, { mode: 'no-cors', cache: 'no-store', signal: controller.signal })
+                    .then(() => {
+                        // ถ้า fetch สำเร็จ (ตอบกลับมาแม้จะเป็น 404) แปลว่าเน็ตวิ่งไปถึงเซิร์ฟเวอร์
+                        clearTimeout(timeoutId);
+                        clearInterval(countdownInterval);
                         onSuccess();
-                    }
-                };
-
-                img.onerror = function() {
-                    if (!isResolved) {
-                        isResolved = true;
-                        clearTimeout(timer);
+                    })
+                    .catch(err => {
+                        // ถ้า fetch พัง (เช่น timeout, เน็ตตัด, ไม่มีเส้นทาง IP)
+                        clearTimeout(timeoutId);
+                        clearInterval(countdownInterval);
                         onFail();
-                    }
-                };
-
-                img.src = testImgUrl;
+                    });
             }
 
-            // ขั้นตอนที่ 1: ลอง IP ภายในก่อน (10.10.5.103)
+            // ลำดับการทำงาน
+            // ขั้นที่ 1: ลอง IP ภายใน (5 วินาที)
             function step1() {
-                textTitle.innerText = "กำลังตรวจสอบเครือข่ายภายใน...";
-                textDesc.innerText = "ใช้เวลาประมาณ 5 วินาที";
-                checkConnection(fallbackUrl, 
-                    () => go(fallbackUrl), // สำเร็จ
-                    step2                  // ล้มเหลว ไปขั้น 2
+                checkConnection(currentFallbackUrl, "เครือข่ายภายใน (10.10.5.103)", 
+                    () => go(currentFallbackUrl), 
+                    step2 // ถ้า 5 วิไม่สำเร็จ ไปขั้น 2
                 );
             }
 
-            // ขั้นตอนที่ 2: ลองโดเมนภายนอก
+            // ขั้นที่ 2: ลอง Domain ภายนอก (5 วินาที)
             function step2() {
-                textTitle.innerText = "กำลังตรวจสอบเครือข่ายภายนอก...";
-                textDesc.innerText = "ใช้เวลาประมาณ 5 วินาที";
-                checkConnection(targetUrl, 
-                    () => go(targetUrl),   // สำเร็จ
-                    step3                  // ล้มเหลว ไปขั้น 3
+                checkConnection(currentTargetUrl, "เครือข่ายภายนอก (โดเมนหลัก)", 
+                    () => go(currentTargetUrl), 
+                    showError // ถ้า 5 วิไม่สำเร็จ ไปหน้า Error
                 );
             }
 
-            // ขั้นตอนที่ 3: วนกลับมาลอง IP ภายในอีกครั้ง
-            function step3() {
-                textTitle.innerText = "กำลังพยายามเชื่อมต่ออีกครั้ง...";
-                textDesc.innerText = "ใช้เวลาประมาณ 5 วินาที";
-                checkConnection(fallbackUrl, 
-                    () => go(fallbackUrl), // สำเร็จ
-                    showError              // ล้มเหลว แสดง Error
-                );
-            }
-
-            // ขั้นตอนที่ 4: แสดง Error
+            // ขั้นที่ 3: แสดงหน้า Error
             function showError() {
                 if (isNavigating) return;
+                clearInterval(countdownInterval);
                 document.getElementById('loading-screen').style.display = 'none';
                 document.getElementById('error-screen').style.display = 'flex';
             }
 
-            // เริ่มต้นการทำงานที่ขั้น 1
+            // เริ่มทำงานที่ขั้นที่ 1
             step1();
         }
     </script>
