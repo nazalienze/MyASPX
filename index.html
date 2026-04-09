@@ -3,18 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบแจ้งซ่อม - สถาบันราชประชาสมาสัย</title>
+    <title>ระบบแจ้งปัญหา - สถาบันราชประชาสมาสัย</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 
     <style>
-        /* ⭐️ การตั้งค่าพื้นฐาน ⭐️ */
+        /* ⭐️ การตั้งค่าพื้นฐานและพื้นหลัง ⭐️ */
         body {
             margin: 0;
             padding: 0;
             font-family: 'Prompt', sans-serif;
-            background: linear-gradient(135deg, #f4f7f6 0%, #e0e8e5 100%);
+            /* ปรับพื้นหลังให้ดูพรีเมียม สบายตา */
+            background: linear-gradient(135deg, #e0f2f1 0%, #b2dfdb 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -22,41 +23,52 @@
             color: #333;
         }
 
-        /* ⭐️ กล่องเมนูหลัก ⭐️ */
+        /* ⭐️ กล่องเมนูหลัก (ใส่ลูกเล่น Glassmorphism เบาๆ) ⭐️ */
         .container {
-            background: #fff;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
             padding: 50px 40px;
-            border-radius: 20px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            border-radius: 24px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
             text-align: center;
             max-width: 600px;
             width: 90%;
+            animation: fadeIn 0.6s ease-out;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         
         .logo-icon {
-            font-size: 4rem;
+            font-size: 4.5rem;
             color: #0A6E31;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
+            filter: drop-shadow(0 4px 6px rgba(10, 110, 49, 0.2));
         }
 
         .title {
             font-size: 1.8rem;
             font-weight: 700;
-            color: #0A6E31;
-            margin-bottom: 10px;
+            color: #2c3e50;
+            margin-bottom: 8px;
+            letter-spacing: 0.5px;
         }
 
         .subtitle {
-            font-size: 1rem;
+            font-size: 1.05rem;
             color: #666;
-            margin-bottom: 40px;
+            margin-bottom: 35px;
+            line-height: 1.5;
         }
 
         /* ⭐️ ปุ่มกด (Buttons) ⭐️ */
         .btn-grid {
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 18px;
         }
 
         .btn-service {
@@ -64,12 +76,12 @@
             align-items: center;
             justify-content: center;
             padding: 20px 30px;
-            border-radius: 15px;
-            font-size: 1.3rem;
+            border-radius: 16px;
+            font-size: 1.25rem;
             font-weight: 600;
             color: #fff;
             text-decoration: none;
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
             border: none;
             cursor: pointer;
             position: relative;
@@ -78,45 +90,78 @@
 
         .btn-service i {
             margin-right: 15px;
-            font-size: 1.8rem;
+            font-size: 1.6rem;
         }
 
-        /* สีปุ่มแจ้งซ่อมไฟฟ้า (สีส้ม/เหลือง) */
+        /* สีปุ่มแจ้งซ่อมไฟฟ้า (ส้มสว่าง-ส้มเข้ม) */
         .btn-electrical {
-            background: linear-gradient(135deg, #f39c12 0%, #d35400 100%);
-            box-shadow: 0 8px 20px rgba(211, 84, 0, 0.3);
+            background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%);
+            box-shadow: 0 8px 20px rgba(245, 124, 0, 0.25);
         }
         .btn-electrical:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 12px 25px rgba(211, 84, 0, 0.4);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 25px rgba(245, 124, 0, 0.35);
         }
 
-        /* สีปุ่มแจ้งซ่อมคอมพิวเตอร์ (สีเขียว RPSI) */
+        /* สีปุ่มแจ้งซ่อมคอมพิวเตอร์ (เขียว RPSI สว่าง-เขียวเข้ม) */
         .btn-it {
-            background: linear-gradient(135deg, #0A6E31 0%, #064d22 100%);
-            box-shadow: 0 8px 20px rgba(10, 110, 49, 0.3);
+            background: linear-gradient(135deg, #2E7D32 0%, #1B5E20 100%);
+            box-shadow: 0 8px 20px rgba(46, 125, 50, 0.25);
         }
         .btn-it:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 12px 25px rgba(10, 110, 49, 0.4);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 25px rgba(46, 125, 50, 0.35);
         }
 
-        /* ⭐️ หน้าจอ Loading (ซ่อนไว้เป็นค่าเริ่มต้น) ⭐️ */
+        /* ⭐️ ส่วนข้อความติดต่อเบอร์ 1405 ⭐️ */
+        .footer-contact {
+            margin-top: 35px;
+            padding-top: 20px;
+            border-top: 1px dashed #d1d8e0;
+            font-size: 0.95rem;
+            color: #7f8fa6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-weight: 400;
+        }
+
+        .footer-contact i {
+            color: #e1b12c; /* สีเหลืองทองให้สังเกตง่าย */
+            font-size: 1.1rem;
+            animation: ring 2s infinite ease-in-out;
+        }
+
+        .footer-contact strong {
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        @keyframes ring {
+            0%, 100% { transform: rotate(0deg); }
+            10%, 30%, 50% { transform: rotate(-15deg); }
+            20%, 40% { transform: rotate(15deg); }
+            60% { transform: rotate(0deg); }
+        }
+
+        /* ⭐️ หน้าจอ Loading ⭐️ */
         #loading-screen {
             display: none;
             flex-direction: column;
             align-items: center;
             justify-content: center;
+            padding: 20px 0;
         }
 
         .loader {
-            width: 80px;
-            height: 80px;
-            border: 8px solid #f3f3f3;
-            border-top: 8px solid #0A6E31;
+            width: 70px;
+            height: 70px;
+            border: 6px solid #f0f3f5;
+            border-top: 6px solid #0A6E31;
             border-radius: 50%;
             animation: spin 1s linear infinite;
-            margin-bottom: 30px;
+            margin-bottom: 25px;
         }
 
         @keyframes spin {
@@ -127,20 +172,20 @@
         .loading-text {
             font-size: 1.4rem;
             font-weight: 600;
-            color: #0A6E31;
-            margin-bottom: 10px;
+            color: #2c3e50;
+            margin-bottom: 8px;
         }
 
         .loading-subtext {
             font-size: 1rem;
-            color: #666;
+            color: #7f8fa6;
             animation: pulse 1.5s infinite;
         }
 
         @keyframes pulse {
-            0% { opacity: 0.6; }
+            0% { opacity: 0.5; }
             50% { opacity: 1; }
-            100% { opacity: 0.6; }
+            100% { opacity: 0.5; }
         }
     </style>
 </head>
@@ -158,50 +203,50 @@
                     'https://rajpracha.ddc.moph.go.th/Rpsi_pages/faifar/index.aspx', 
                     'http://10.10.5.103/Rpsi_pages/faifar/index.aspx'
                 )">
-                    <i class="fas fa-bolt"></i> แจ้งซ่อมระบบไฟฟ้า ประปา อาคารสถานที่ อื่นๆ
+                    <i class="fas fa-bolt"></i> แจ้งปัญหาระบบไฟฟ้า ประปา อาคาร อื่นๆ
                 </button>
 
                 <button class="btn-service btn-it" onclick="navigateTo(
                     'https://rajpracha.ddc.moph.go.th/Rpsi_pages/it/index.aspx', 
                     'http://10.10.5.103/Rpsi_pages/it/index.aspx'
                 )">
-                    <i class="fas fa-laptop-medical"></i> แจ้งปัญหาการใช้งานคอมพิวเตอร์
+                    <i class="fas fa-laptop-medical"></i> แจ้งปัญหาระบบคอมพิวเตอร์
                 </button>
+            </div>
+
+            <div class="footer-contact">
+                <i class="fas fa-phone-alt"></i>
+                <span>หากไม่สามารถเข้าระบบได้ กรุณาติดต่อเบอร์ภายใน <strong>1405</strong></span>
             </div>
         </div>
 
         <div id="loading-screen">
             <div class="loader"></div>
             <div class="loading-text">กำลังตรวจสอบเส้นทางเครือข่าย...</div>
-            <div class="loading-subtext">ระบบกำลังเชื่อมต่อ กรุณารอสักครู่</div>
+            <div class="loading-subtext">ระบบกำลังเชื่อมต่อ... กรุณารอสักครู่...</div>
         </div>
 
     </div>
 
     <script>
         async function navigateTo(targetUrl, fallbackUrl) {
-            // 1. ซ่อนเมนูหลัก และแสดงหน้า Loading
             document.getElementById('main-menu').style.display = 'none';
             document.getElementById('loading-screen').style.display = 'flex';
 
-            // 2. ตั้งเวลา Timeout ไว้ที่ 3.5 วินาที (3500 มิลลิวินาที)
             const timeout = (ms) => new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), ms));
 
             try {
-                // 3. วิ่งแข่งกันระหว่าง Fetch (เคาะประตู Domain ภายนอก) กับ ตัวจับเวลา Timeout
                 await Promise.race([
                     fetch(targetUrl, {
-                        method: 'HEAD',      // ใช้ HEAD เพื่อดึงข้อมูลให้น้อยและเร็วที่สุด
-                        mode: 'no-cors',     // ป้องกันเบราว์เซอร์บล็อกเรื่อง Cross-Origin
-                        cache: 'no-store'    // ไม่ให้จำแคช เพื่อเช็คสัญญาณแบบ Real-time
+                        method: 'HEAD',
+                        mode: 'no-cors',
+                        cache: 'no-store'
                     }),
                     timeout(3500)
                 ]);
 
-                // 4. ถ้าผ่าน (อยู่ในเครือข่ายภายนอกที่มองเห็น Domain) ให้เข้าลิงก์หลัก
                 window.location.href = targetUrl;
             } catch (e) {
-                // 5. ถ้าเกิด Error (เช่น ไม่ได้ต่อเน็ตภายนอก) หรือ หมดเวลา (Timeout) ให้เด้งเข้าลิงก์ IP ภายใน
                 window.location.href = fallbackUrl;
             }
         }
