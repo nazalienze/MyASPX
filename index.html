@@ -35,14 +35,14 @@
         
         .logo-icon {
             font-size: 4rem;
-            color: #0A6E31;
+            color: #005C97;
             margin-bottom: 15px;
         }
 
         .title {
             font-size: 1.8rem;
             font-weight: 700;
-            color: #0A6E31;
+            color: #333;
             margin-bottom: 10px;
         }
 
@@ -81,22 +81,24 @@
             font-size: 1.8rem;
         }
 
+        /* ปุ่มไฟฟัา - สีฟ้าคราม */
         .btn-electrical {
-            background: linear-gradient(135deg, #f39c12 0%, #d35400 100%);
-            box-shadow: 0 8px 20px rgba(211, 84, 0, 0.3);
+            background: linear-gradient(135deg, #00B4DB 0%, #0083B0 100%);
+            box-shadow: 0 8px 20px rgba(0, 131, 176, 0.3);
         }
         .btn-electrical:hover {
             transform: translateY(-5px);
-            box-shadow: 0 12px 25px rgba(211, 84, 0, 0.4);
+            box-shadow: 0 12px 25px rgba(0, 131, 176, 0.4);
         }
 
+        /* ปุ่ม IT - สีน้ำเงินม่วง */
         .btn-it {
-            background: linear-gradient(135deg, #0A6E31 0%, #064d22 100%);
-            box-shadow: 0 8px 20px rgba(10, 110, 49, 0.3);
+            background: linear-gradient(135deg, #4776E6 0%, #8E54E9 100%);
+            box-shadow: 0 8px 20px rgba(71, 118, 230, 0.3);
         }
         .btn-it:hover {
             transform: translateY(-5px);
-            box-shadow: 0 12px 25px rgba(10, 110, 49, 0.4);
+            box-shadow: 0 12px 25px rgba(71, 118, 230, 0.4);
         }
 
         /* ⭐️ หน้าจอ Loading ⭐️ */
@@ -111,7 +113,7 @@
             width: 80px;
             height: 80px;
             border: 8px solid #f3f3f3;
-            border-top: 8px solid #0A6E31;
+            border-top: 8px solid #4776E6;
             border-radius: 50%;
             animation: spin 1s linear infinite;
             margin-bottom: 20px;
@@ -125,14 +127,14 @@
         .loading-text {
             font-size: 1.4rem;
             font-weight: 600;
-            color: #0A6E31;
+            color: #333;
             margin-bottom: 10px;
         }
 
         .countdown-text {
             font-size: 2rem;
             font-weight: 700;
-            color: #d35400;
+            color: #0083B0;
             margin: 15px 0;
         }
 
@@ -188,9 +190,9 @@
         }
 
         .btn-retry {
-            background: #0A6E31;
+            background: #4776E6;
         }
-        .btn-retry:hover { background: #064d22; }
+        .btn-retry:hover { background: #3558c4; }
 
         .btn-back {
             background: #666;
@@ -204,7 +206,7 @@
     <div class="container">
         
         <div id="main-menu">
-            <i class="fas fa-hospital-user logo-icon"></i>
+            <i class="fas fa-desktop logo-icon"></i>
             <h1 class="title">ระบบแจ้งปัญหาการใช้งาน</h1>
             <p class="subtitle">สถาบันราชประชาสมาสัย (RPSI Helpdesk)<br/>กรุณาเลือกระบบที่ท่านต้องการแจ้งซ่อม</p>
             
@@ -227,7 +229,7 @@
 
         <div id="loading-screen">
             <div class="loader"></div>
-            <div class="loading-text" id="loading-title">กำลังนำท่านเข้าสู่ระบบ...</div>
+            <div class="loading-text" id="loading-title">กำลังค้นหาเส้นทางเชื่อมต่อ...</div>
             <div class="countdown-text" id="loading-timer">5</div>
             <div class="loading-subtext" id="loading-desc">กรุณารอสักครู่</div>
         </div>
@@ -251,7 +253,7 @@
 
     <script>
         // ⭐️ ตัวแปรตั้งค่า ⭐️
-        const MAX_ATTEMPTS = 10; // วนลูปสูงสุด 10 รอบ
+        const MAX_ATTEMPTS = 10; // วนลูปสลับกันทั้งหมด 10 รอบ
         let currentAttempt = 0;
         let currentTargetUrl = "";
         let currentFallbackUrl = "";
@@ -277,15 +279,12 @@
         }
 
         function executeNavigation() {
-            // ซ่อนหน้าหลัก แสดงหน้า Loading
             document.getElementById('main-menu').style.display = 'none';
             document.getElementById('error-screen').style.display = 'none';
             document.getElementById('loading-screen').style.display = 'flex';
 
             currentAttempt = 0;
             isNavigating = false;
-
-            // เริ่มต้นตรวจสอบ
             doNextPing();
         }
 
@@ -300,15 +299,14 @@
                 return;
             }
 
-            // สลับเครือข่าย: รอบคี่ = ภายใน (Fallback), รอบคู่ = ภายนอก (Target)
+            // สลับเครือข่าย: รอบคี่ = ภายใน (IP), รอบคู่ = ภายนอก (Domain)
             const isInternal = (currentAttempt % 2 !== 0);
             const checkUrl = isInternal ? currentFallbackUrl : currentTargetUrl;
-            const stepName = isInternal ? "เครือข่ายภายใน (10.10.5.103)" : "เครือข่ายภายนอก (โดเมนหลัก)";
+            const stepName = isInternal ? "เครือข่ายภายใน (10.10.5.103)" : "โดเมนเนมภายนอก";
 
-            // ดำเนินการเช็คการเชื่อมต่อ 5 วินาที
             checkConnection(checkUrl, stepName, currentAttempt, 
-                () => go(checkUrl),        // ถ้าเจอว่าเข้าได้ -> พาย้ายหน้าทันที
-                () => doNextPing()         // ถ้าล้มเหลวหรือหมดเวลา -> วนลูปรอบถัดไป
+                () => go(checkUrl),        // สำเร็จ -> ไปที่ URL นั้นเลย
+                () => doNextPing()         // หมดเวลา/ล้มเหลว -> วนลูปรอบถัดไป
             );
         }
 
@@ -316,7 +314,7 @@
             if (!isNavigating) {
                 isNavigating = true;
                 clearInterval(countdownInterval);
-                window.location.href = url; // สั่งย้ายหน้าต่างเว็บไปยัง URL ทันที
+                window.location.href = url;
             }
         }
 
@@ -324,14 +322,13 @@
             if (isNavigating) return;
 
             let timeLeft = 5;
-            document.getElementById('loading-title').innerText = `กำลังเชื่อมต่อระบบ (รอบที่ ${attemptNum}/${MAX_ATTEMPTS})`;
-            document.getElementById('loading-desc').innerText = `ทดสอบผ่าน: ${stepName}`;
+            document.getElementById('loading-title').innerText = `กำลังเชื่อมต่อ (รอบที่ ${attemptNum}/${MAX_ATTEMPTS})`;
+            document.getElementById('loading-desc').innerText = `กำลังตรวจสอบ: ${stepName}`;
             document.getElementById('loading-timer').innerText = timeLeft;
 
             clearInterval(countdownInterval);
-            let isDone = false; // Flag ป้องกันการทำงานซ้ำซ้อน
+            let isDone = false; 
 
-            // ฟังก์ชันเมื่อตรวจสอบสำเร็จ
             const completeSuccess = () => {
                 if (!isDone) {
                     isDone = true;
@@ -340,7 +337,6 @@
                 }
             };
 
-            // ฟังก์ชันเมื่อล้มเหลว (หมดเวลา)
             const completeFail = () => {
                 if (!isDone) {
                     isDone = true;
@@ -355,39 +351,24 @@
                 if (timeLeft > 0) {
                     document.getElementById('loading-timer').innerText = timeLeft;
                 } else {
-                    // หากครบ 5 วินาทีแล้วไม่สำเร็จ ให้ถือว่า Fail และปล่อยให้ไปทำรอบถัดไป
-                    completeFail(); 
+                    completeFail(); // ครบ 5 วิ ให้เปลี่ยนไปปิงเส้นทางถัดไป
                 }
             }, 1000);
 
-            const controller = new AbortController();
+            // วิธีที่ 1: ตรวจสอบด้วย Fetch
+            fetch(url, { mode: 'no-cors', cache: 'no-store' })
+                .then(() => { completeSuccess(); })
+                .catch(() => { 
+                    // ปล่อยให้เวลาเดินครบ 5 วิ เพื่อไม่ให้หน้าจอสลับเร็วเกินไป
+                });
 
-            // 🛠 วิธีที่ 1: ตรวจสอบด้วย Fetch API (no-cors)
-            fetch(url, { 
-                method: 'GET',
-                mode: 'no-cors', 
-                cache: 'no-store', 
-                signal: controller.signal 
-            })
-            .then(() => {
-                completeSuccess();
-            })
-            .catch(err => {
-                // หาก Fetch ล้มเหลวทันที (เช่นโดนบล็อก CORS) เราจะไม่สั่ง Fail ทันที
-                // เพื่อให้นับเวลาถอยหลังบนหน้าจอให้ครบ 5 วินาทีต่อ 1 รอบ
-                console.log(`รอบ ${attemptNum} Fetch ถูกขัดจังหวะ:`, err);
-            });
-
-            // 🛠 วิธีที่ 2: ตรวจสอบด้วย Image Ping (เทคนิคดักจับระดับ Network)
+            // วิธีที่ 2: ตรวจสอบด้วย Image Ping (เผื่อ Fetch โดนบล็อก)
             try {
                 const urlObj = new URL(url);
                 const img = new Image();
-                img.onload = completeSuccess; // ถ้ารูปโหลดติด = เซิร์ฟเวอร์ออนไลน์แน่นอน!
-                // เติมพารามิเตอร์ด้านหลังเวลาเพื่อไม่ให้ติดแคช
+                img.onload = completeSuccess;
                 img.src = urlObj.origin + '/favicon.ico?_=' + new Date().getTime();
-            } catch(e) {
-                console.log("Image ping setup error:", e);
-            }
+            } catch(e) { }
         }
 
         function showError() {
