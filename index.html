@@ -250,13 +250,17 @@
     </div>
 
     <script>
-        // ตัวแปรเก็บค่าเผื่อกรณี User กด "ลองใหม่อีกครั้ง"
+        // ⭐️ ตัวแปรตั้งค่า ⭐️
+        const MAX_ATTEMPTS = 10; // วนลูปสูงสุด 10 รอบ
+        let currentAttempt = 0;
         let currentTargetUrl = "";
         let currentFallbackUrl = "";
         let countdownInterval;
+        let isNavigating = false;
 
         function resetMenu() {
             clearInterval(countdownInterval);
+            isNavigating = false;
             document.getElementById('error-screen').style.display = 'none';
             document.getElementById('loading-screen').style.display = 'none';
             document.getElementById('main-menu').style.display = 'block';
@@ -273,93 +277,124 @@
         }
 
         function executeNavigation() {
-            // ซ่อนหน้าอื่น แสดงหน้า Loading
+            // ซ่อนหน้าหลัก แสดงหน้า Loading
             document.getElementById('main-menu').style.display = 'none';
             document.getElementById('error-screen').style.display = 'none';
             document.getElementById('loading-screen').style.display = 'flex';
 
-            const textTitle = document.getElementById('loading-title');
-            const textDesc = document.getElementById('loading-desc');
-            const textTimer = document.getElementById('loading-timer');
+            currentAttempt = 0;
+            isNavigating = false;
 
-            let isNavigating = false;
+            // เริ่มต้นตรวจสอบ
+            doNextPing();
+        }
 
-            // พาย้ายหน้าเว็บ
-            function go(url) {
-                if (!isNavigating) {
-                    isNavigating = true;
+        function doNextPing() {
+            if (isNavigating) return;
+
+            currentAttempt++;
+            
+            // ถ้าวนลูปครบ 10 รอบแล้วยังไม่ได้ ให้แสดงหน้า Error
+            if (currentAttempt > MAX_ATTEMPTS) {
+                showError();
+                return;
+            }
+
+            // สลับเครือข่าย: รอบคี่ = ภายใน (Fallback), รอบคู่ = ภายนอก (Target)
+            const isInternal = (currentAttempt % 2 !== 0);
+            const checkUrl = isInternal ? currentFallbackUrl : currentTargetUrl;
+            const stepName = isInternal ? "เครือข่ายภายใน (10.10.5.103)" : "เครือข่ายภายนอก (โดเมนหลัก)";
+
+            // ดำเนินการเช็คการเชื่อมต่อ 5 วินาที
+            checkConnection(checkUrl, stepName, currentAttempt, 
+                () => go(checkUrl),        // ถ้าเจอว่าเข้าได้ -> พาย้ายหน้าทันที
+                () => doNextPing()         // ถ้าล้มเหลวหรือหมดเวลา -> วนลูปรอบถัดไป
+            );
+        }
+
+        function go(url) {
+            if (!isNavigating) {
+                isNavigating = true;
+                clearInterval(countdownInterval);
+                window.location.href = url; // สั่งย้ายหน้าต่างเว็บไปยัง URL ทันที
+            }
+        }
+
+        function checkConnection(url, stepName, attemptNum, onSuccess, onFail) {
+            if (isNavigating) return;
+
+            let timeLeft = 5;
+            document.getElementById('loading-title').innerText = `กำลังเชื่อมต่อระบบ (รอบที่ ${attemptNum}/${MAX_ATTEMPTS})`;
+            document.getElementById('loading-desc').innerText = `ทดสอบผ่าน: ${stepName}`;
+            document.getElementById('loading-timer').innerText = timeLeft;
+
+            clearInterval(countdownInterval);
+            let isDone = false; // Flag ป้องกันการทำงานซ้ำซ้อน
+
+            // ฟังก์ชันเมื่อตรวจสอบสำเร็จ
+            const completeSuccess = () => {
+                if (!isDone) {
+                    isDone = true;
                     clearInterval(countdownInterval);
-                    window.location.href = url;
+                    onSuccess();
                 }
+            };
+
+            // ฟังก์ชันเมื่อล้มเหลว (หมดเวลา)
+            const completeFail = () => {
+                if (!isDone) {
+                    isDone = true;
+                    clearInterval(countdownInterval);
+                    onFail();
+                }
+            };
+
+            // นับถอยหลัง 5 วินาที
+            countdownInterval = setInterval(() => {
+                timeLeft--;
+                if (timeLeft > 0) {
+                    document.getElementById('loading-timer').innerText = timeLeft;
+                } else {
+                    // หากครบ 5 วินาทีแล้วไม่สำเร็จ ให้ถือว่า Fail และปล่อยให้ไปทำรอบถัดไป
+                    completeFail(); 
+                }
+            }, 1000);
+
+            const controller = new AbortController();
+
+            // 🛠 วิธีที่ 1: ตรวจสอบด้วย Fetch API (no-cors)
+            fetch(url, { 
+                method: 'GET',
+                mode: 'no-cors', 
+                cache: 'no-store', 
+                signal: controller.signal 
+            })
+            .then(() => {
+                completeSuccess();
+            })
+            .catch(err => {
+                // หาก Fetch ล้มเหลวทันที (เช่นโดนบล็อก CORS) เราจะไม่สั่ง Fail ทันที
+                // เพื่อให้นับเวลาถอยหลังบนหน้าจอให้ครบ 5 วินาทีต่อ 1 รอบ
+                console.log(`รอบ ${attemptNum} Fetch ถูกขัดจังหวะ:`, err);
+            });
+
+            // 🛠 วิธีที่ 2: ตรวจสอบด้วย Image Ping (เทคนิคดักจับระดับ Network)
+            try {
+                const urlObj = new URL(url);
+                const img = new Image();
+                img.onload = completeSuccess; // ถ้ารูปโหลดติด = เซิร์ฟเวอร์ออนไลน์แน่นอน!
+                // เติมพารามิเตอร์ด้านหลังเวลาเพื่อไม่ให้ติดแคช
+                img.src = urlObj.origin + '/favicon.ico?_=' + new Date().getTime();
+            } catch(e) {
+                console.log("Image ping setup error:", e);
             }
+        }
 
-            // ฟังก์ชันตรวจสอบเครือข่ายด้วย Fetch API แบบจับเวลา
-            function checkConnection(url, stepName, onSuccess, onFail) {
-                if (isNavigating) return;
-
-                let timeLeft = 5;
-                textTitle.innerText = `กำลังตรวจสอบการเชื่อมต่อ...`;
-                textDesc.innerText = `พยายามเชื่อมต่อผ่าน: ${stepName}`;
-                textTimer.innerText = timeLeft;
-
-                clearInterval(countdownInterval);
-                
-                // เริ่มนับถอยหลังหน้าจอ
-                countdownInterval = setInterval(() => {
-                    timeLeft--;
-                    if (timeLeft >= 0) {
-                        textTimer.innerText = timeLeft;
-                    }
-                }, 1000);
-
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => {
-                    controller.abort(); // ยกเลิกการดึงข้อมูลเมื่อครบ 5 วิ
-                }, 5000);
-
-                // ใช้ fetch โหมด no-cors เพื่อเช็คว่า Network เข้าถึงได้หรือไม่โดยไม่สนกฏข้ามโดเมน
-                fetch(url, { mode: 'no-cors', cache: 'no-store', signal: controller.signal })
-                    .then(() => {
-                        // ถ้า fetch สำเร็จ (ตอบกลับมาแม้จะเป็น 404) แปลว่าเน็ตวิ่งไปถึงเซิร์ฟเวอร์
-                        clearTimeout(timeoutId);
-                        clearInterval(countdownInterval);
-                        onSuccess();
-                    })
-                    .catch(err => {
-                        // ถ้า fetch พัง (เช่น timeout, เน็ตตัด, ไม่มีเส้นทาง IP)
-                        clearTimeout(timeoutId);
-                        clearInterval(countdownInterval);
-                        onFail();
-                    });
-            }
-
-            // ลำดับการทำงาน
-            // ขั้นที่ 1: ลอง IP ภายใน (5 วินาที)
-            function step1() {
-                checkConnection(currentFallbackUrl, "เครือข่ายภายใน (10.10.5.103)", 
-                    () => go(currentFallbackUrl), 
-                    step2 // ถ้า 5 วิไม่สำเร็จ ไปขั้น 2
-                );
-            }
-
-            // ขั้นที่ 2: ลอง Domain ภายนอก (5 วินาที)
-            function step2() {
-                checkConnection(currentTargetUrl, "เครือข่ายภายนอก (โดเมนหลัก)", 
-                    () => go(currentTargetUrl), 
-                    showError // ถ้า 5 วิไม่สำเร็จ ไปหน้า Error
-                );
-            }
-
-            // ขั้นที่ 3: แสดงหน้า Error
-            function showError() {
-                if (isNavigating) return;
-                clearInterval(countdownInterval);
-                document.getElementById('loading-screen').style.display = 'none';
-                document.getElementById('error-screen').style.display = 'flex';
-            }
-
-            // เริ่มทำงานที่ขั้นที่ 1
-            step1();
+        function showError() {
+            if (isNavigating) return;
+            clearInterval(countdownInterval);
+            document.getElementById('loading-screen').style.display = 'none';
+            document.getElementById('error-screen').style.display = 'flex';
         }
     </script>
 </body>
