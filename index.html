@@ -35,14 +35,14 @@
         
         .logo-icon {
             font-size: 4rem;
-            color: #005C97;
+            color: #0A6E31;
             margin-bottom: 15px;
         }
 
         .title {
             font-size: 1.8rem;
             font-weight: 700;
-            color: #333;
+            color: #0A6E31;
             margin-bottom: 10px;
         }
 
@@ -81,27 +81,27 @@
             font-size: 1.8rem;
         }
 
-        /* ปุ่มไฟฟัา - สีฟ้าคราม */
+        /* สีปุ่มแจ้งซ่อมไฟฟ้า (สีส้ม/เหลือง) */
         .btn-electrical {
-            background: linear-gradient(135deg, #00B4DB 0%, #0083B0 100%);
-            box-shadow: 0 8px 20px rgba(0, 131, 176, 0.3);
+            background: linear-gradient(135deg, #f39c12 0%, #d35400 100%);
+            box-shadow: 0 8px 20px rgba(211, 84, 0, 0.3);
         }
         .btn-electrical:hover {
             transform: translateY(-5px);
-            box-shadow: 0 12px 25px rgba(0, 131, 176, 0.4);
+            box-shadow: 0 12px 25px rgba(211, 84, 0, 0.4);
         }
 
-        /* ปุ่ม IT - สีน้ำเงินม่วง */
+        /* สีปุ่มแจ้งซ่อมคอมพิวเตอร์ (สีเขียว RPSI) */
         .btn-it {
-            background: linear-gradient(135deg, #4776E6 0%, #8E54E9 100%);
-            box-shadow: 0 8px 20px rgba(71, 118, 230, 0.3);
+            background: linear-gradient(135deg, #0A6E31 0%, #064d22 100%);
+            box-shadow: 0 8px 20px rgba(10, 110, 49, 0.3);
         }
         .btn-it:hover {
             transform: translateY(-5px);
-            box-shadow: 0 12px 25px rgba(71, 118, 230, 0.4);
+            box-shadow: 0 12px 25px rgba(10, 110, 49, 0.4);
         }
 
-        /* ⭐️ หน้าจอ Loading ⭐️ */
+        /* ⭐️ หน้าจอ Loading (ซ่อนไว้เป็นค่าเริ่มต้น) ⭐️ */
         #loading-screen {
             display: none;
             flex-direction: column;
@@ -113,10 +113,10 @@
             width: 80px;
             height: 80px;
             border: 8px solid #f3f3f3;
-            border-top: 8px solid #4776E6;
+            border-top: 8px solid #0A6E31;
             border-radius: 50%;
             animation: spin 1s linear infinite;
-            margin-bottom: 20px;
+            margin-bottom: 30px;
         }
 
         @keyframes spin {
@@ -127,78 +127,21 @@
         .loading-text {
             font-size: 1.4rem;
             font-weight: 600;
-            color: #333;
+            color: #0A6E31;
             margin-bottom: 10px;
-        }
-
-        .countdown-text {
-            font-size: 2rem;
-            font-weight: 700;
-            color: #0083B0;
-            margin: 15px 0;
         }
 
         .loading-subtext {
             font-size: 1rem;
             color: #666;
+            animation: pulse 1.5s infinite;
         }
 
-        /* ⭐️ หน้าจอ Error ⭐️ */
-        #error-screen {
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+        @keyframes pulse {
+            0% { opacity: 0.6; }
+            50% { opacity: 1; }
+            100% { opacity: 0.6; }
         }
-
-        .error-icon {
-            font-size: 4rem;
-            color: #e74c3c;
-            margin-bottom: 15px;
-        }
-
-        .error-text {
-            font-size: 1.4rem;
-            font-weight: 600;
-            color: #e74c3c;
-            margin-bottom: 10px;
-        }
-
-        .error-subtext {
-            font-size: 1rem;
-            color: #666;
-            margin-bottom: 30px;
-        }
-
-        .action-buttons {
-            display: flex;
-            gap: 15px;
-            width: 100%;
-            justify-content: center;
-        }
-
-        .btn-action {
-            padding: 12px 25px;
-            font-size: 1.1rem;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border: none;
-            color: #fff;
-            font-family: 'Prompt', sans-serif;
-            font-weight: 500;
-        }
-
-        .btn-retry {
-            background: #4776E6;
-        }
-        .btn-retry:hover { background: #3558c4; }
-
-        .btn-back {
-            background: #666;
-        }
-        .btn-back:hover { background: #444; }
-
     </style>
 </head>
 <body>
@@ -206,176 +149,61 @@
     <div class="container">
         
         <div id="main-menu">
-            <i class="fas fa-desktop logo-icon"></i>
+            <i class="fas fa-hospital-user logo-icon"></i>
             <h1 class="title">ระบบแจ้งปัญหาการใช้งาน</h1>
             <p class="subtitle">สถาบันราชประชาสมาสัย (RPSI Helpdesk)<br/>กรุณาเลือกระบบที่ท่านต้องการแจ้งซ่อม</p>
             
             <div class="btn-grid">
-                <button type="button" class="btn-service btn-electrical" onclick="startNavigation(
+                <button class="btn-service btn-electrical" onclick="navigateTo(
                     'https://rajpracha.ddc.moph.go.th/Rpsi_pages/faifar/index.aspx', 
                     'http://10.10.5.103/Rpsi_pages/faifar/index.aspx'
                 )">
-                    <i class="fas fa-bolt"></i> แจ้งซ่อมระบบไฟฟ้า ประปา ซ่อมบำรุง
+                    <i class="fas fa-bolt"></i> แจ้งซ่อมระบบไฟฟ้า ประปา อาคารสถานที่ อื่นๆ
                 </button>
 
-                <button type="button" class="btn-service btn-it" onclick="startNavigation(
+                <button class="btn-service btn-it" onclick="navigateTo(
                     'https://rajpracha.ddc.moph.go.th/Rpsi_pages/it/index.aspx', 
                     'http://10.10.5.103/Rpsi_pages/it/index.aspx'
                 )">
-                    <i class="fas fa-laptop-medical"></i> แจ้งซ่อมคอมพิวเตอร์
+                    <i class="fas fa-laptop-medical"></i> แจ้งปัญหาการใช้งานคอมพิวเตอร์
                 </button>
             </div>
         </div>
 
         <div id="loading-screen">
             <div class="loader"></div>
-            <div class="loading-text" id="loading-title">กำลังค้นหาเส้นทางเชื่อมต่อ...</div>
-            <div class="countdown-text" id="loading-timer">5</div>
-            <div class="loading-subtext" id="loading-desc">กรุณารอสักครู่</div>
-        </div>
-
-        <div id="error-screen">
-            <i class="fas fa-wifi error-icon" style="color: #e74c3c; font-size: 4rem; margin-bottom: 15px;"></i>
-            <div class="error-text">ไม่สามารถเชื่อมต่อระบบได้ในขณะนี้</div>
-            <div class="error-subtext">ไม่พบเส้นทางการเชื่อมต่อทั้งภายในและภายนอก<br/>กรุณาตรวจสอบอินเทอร์เน็ตของท่าน หรือลองใหม่อีกครั้ง</div>
-            
-            <div class="action-buttons">
-                <button class="btn-action btn-retry" onclick="retryNavigation()">
-                    <i class="fas fa-redo"></i> ลองใหม่อีกครั้ง
-                </button>
-                <button class="btn-action btn-back" onclick="resetMenu()">
-                    <i class="fas fa-home"></i> กลับหน้าหลัก
-                </button>
-            </div>
+            <div class="loading-text">กำลังตรวจสอบเส้นทางเครือข่าย...</div>
+            <div class="loading-subtext">ระบบกำลังเชื่อมต่อ กรุณารอสักครู่</div>
         </div>
 
     </div>
 
     <script>
-        // ⭐️ ตัวแปรตั้งค่า ⭐️
-        const MAX_ATTEMPTS = 10; // วนลูปสลับกันทั้งหมด 10 รอบ
-        let currentAttempt = 0;
-        let currentTargetUrl = "";
-        let currentFallbackUrl = "";
-        let countdownInterval;
-        let isNavigating = false;
-
-        function resetMenu() {
-            clearInterval(countdownInterval);
-            isNavigating = false;
-            document.getElementById('error-screen').style.display = 'none';
-            document.getElementById('loading-screen').style.display = 'none';
-            document.getElementById('main-menu').style.display = 'block';
-        }
-
-        function startNavigation(targetUrl, fallbackUrl) {
-            currentTargetUrl = targetUrl;
-            currentFallbackUrl = fallbackUrl;
-            executeNavigation();
-        }
-
-        function retryNavigation() {
-            executeNavigation();
-        }
-
-        function executeNavigation() {
+        async function navigateTo(targetUrl, fallbackUrl) {
+            // 1. ซ่อนเมนูหลัก และแสดงหน้า Loading
             document.getElementById('main-menu').style.display = 'none';
-            document.getElementById('error-screen').style.display = 'none';
             document.getElementById('loading-screen').style.display = 'flex';
 
-            currentAttempt = 0;
-            isNavigating = false;
-            doNextPing();
-        }
+            // 2. ตั้งเวลา Timeout ไว้ที่ 3.5 วินาที (3500 มิลลิวินาที)
+            const timeout = (ms) => new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), ms));
 
-        function doNextPing() {
-            if (isNavigating) return;
-
-            currentAttempt++;
-            
-            // ถ้าวนลูปครบ 10 รอบแล้วยังไม่ได้ ให้แสดงหน้า Error
-            if (currentAttempt > MAX_ATTEMPTS) {
-                showError();
-                return;
-            }
-
-            // สลับเครือข่าย: รอบคี่ = ภายใน (IP), รอบคู่ = ภายนอก (Domain)
-            const isInternal = (currentAttempt % 2 !== 0);
-            const checkUrl = isInternal ? currentFallbackUrl : currentTargetUrl;
-            const stepName = isInternal ? "เครือข่ายภายใน (10.10.5.103)" : "โดเมนเนมภายนอก";
-
-            checkConnection(checkUrl, stepName, currentAttempt, 
-                () => go(checkUrl),        // สำเร็จ -> ไปที่ URL นั้นเลย
-                () => doNextPing()         // หมดเวลา/ล้มเหลว -> วนลูปรอบถัดไป
-            );
-        }
-
-        function go(url) {
-            if (!isNavigating) {
-                isNavigating = true;
-                clearInterval(countdownInterval);
-                window.location.href = url;
-            }
-        }
-
-        function checkConnection(url, stepName, attemptNum, onSuccess, onFail) {
-            if (isNavigating) return;
-
-            let timeLeft = 5;
-            document.getElementById('loading-title').innerText = `กำลังเชื่อมต่อ (รอบที่ ${attemptNum}/${MAX_ATTEMPTS})`;
-            document.getElementById('loading-desc').innerText = `กำลังตรวจสอบ: ${stepName}`;
-            document.getElementById('loading-timer').innerText = timeLeft;
-
-            clearInterval(countdownInterval);
-            let isDone = false; 
-
-            const completeSuccess = () => {
-                if (!isDone) {
-                    isDone = true;
-                    clearInterval(countdownInterval);
-                    onSuccess();
-                }
-            };
-
-            const completeFail = () => {
-                if (!isDone) {
-                    isDone = true;
-                    clearInterval(countdownInterval);
-                    onFail();
-                }
-            };
-
-            // นับถอยหลัง 5 วินาที
-            countdownInterval = setInterval(() => {
-                timeLeft--;
-                if (timeLeft > 0) {
-                    document.getElementById('loading-timer').innerText = timeLeft;
-                } else {
-                    completeFail(); // ครบ 5 วิ ให้เปลี่ยนไปปิงเส้นทางถัดไป
-                }
-            }, 1000);
-
-            // วิธีที่ 1: ตรวจสอบด้วย Fetch
-            fetch(url, { mode: 'no-cors', cache: 'no-store' })
-                .then(() => { completeSuccess(); })
-                .catch(() => { 
-                    // ปล่อยให้เวลาเดินครบ 5 วิ เพื่อไม่ให้หน้าจอสลับเร็วเกินไป
-                });
-
-            // วิธีที่ 2: ตรวจสอบด้วย Image Ping (เผื่อ Fetch โดนบล็อก)
             try {
-                const urlObj = new URL(url);
-                const img = new Image();
-                img.onload = completeSuccess;
-                img.src = urlObj.origin + '/favicon.ico?_=' + new Date().getTime();
-            } catch(e) { }
-        }
+                // 3. วิ่งแข่งกันระหว่าง Fetch (เคาะประตู Domain ภายนอก) กับ ตัวจับเวลา Timeout
+                await Promise.race([
+                    fetch(targetUrl, {
+                        method: 'HEAD',      // ใช้ HEAD เพื่อดึงข้อมูลให้น้อยและเร็วที่สุด
+                        mode: 'no-cors',     // ป้องกันเบราว์เซอร์บล็อกเรื่อง Cross-Origin
+                        cache: 'no-store'    // ไม่ให้จำแคช เพื่อเช็คสัญญาณแบบ Real-time
+                    }),
+                    timeout(3500)
+                ]);
 
-        function showError() {
-            if (isNavigating) return;
-            clearInterval(countdownInterval);
-            document.getElementById('loading-screen').style.display = 'none';
-            document.getElementById('error-screen').style.display = 'flex';
+                // 4. ถ้าผ่าน (อยู่ในเครือข่ายภายนอกที่มองเห็น Domain) ให้เข้าลิงก์หลัก
+                window.location.href = targetUrl;
+            } catch (e) {
+                // 5. ถ้าเกิด Error (เช่น ไม่ได้ต่อเน็ตภายนอก) หรือ หมดเวลา (Timeout) ให้เด้งเข้าลิงก์ IP ภายใน
+                window.location.href = fallbackUrl;
+            }
         }
     </script>
 </body>
