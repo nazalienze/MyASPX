@@ -14,7 +14,6 @@
             margin: 0;
             padding: 0;
             font-family: 'Prompt', sans-serif;
-            /* ปรับพื้นหลังให้ดูพรีเมียม สบายตา */
             background: linear-gradient(135deg, #e0f2f1 0%, #b2dfdb 100%);
             min-height: 100vh;
             display: flex;
@@ -128,7 +127,7 @@
         }
 
         .footer-contact i {
-            color: #e1b12c; /* สีเหลืองทองให้สังเกตง่าย */
+            color: #e1b12c;
             font-size: 1.1rem;
             animation: ring 2s infinite ease-in-out;
         }
@@ -145,7 +144,7 @@
             60% { transform: rotate(0deg); }
         }
 
-        /* ⭐️ หน้าจอ Loading ⭐️ */
+        /* ⭐️ หน้าจอ Loading และวงกลมนับถอยหลัง ⭐️ */
         #loading-screen {
             display: none;
             flex-direction: column;
@@ -154,14 +153,37 @@
             padding: 20px 0;
         }
 
+        /* กล่องครอบวงกลมและตัวเลข */
+        .loader-wrapper {
+            position: relative;
+            width: 75px;
+            height: 75px;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* วงกลมหมุนๆ */
         .loader {
-            width: 70px;
-            height: 70px;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             border: 6px solid #f0f3f5;
             border-top: 6px solid #0A6E31;
             border-radius: 50%;
             animation: spin 1s linear infinite;
-            margin-bottom: 25px;
+            box-sizing: border-box;
+        }
+
+        /* ตัวเลขนับถอยหลังตรงกลาง */
+        .countdown-number {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #0A6E31;
+            z-index: 2; /* ให้อยู่เหนือวงกลม */
         }
 
         @keyframes spin {
@@ -221,7 +243,10 @@
         </div>
 
         <div id="loading-screen">
-            <div class="loader"></div>
+            <div class="loader-wrapper">
+                <div class="loader"></div>
+                <div class="countdown-number" id="countdown">10</div>
+            </div>
             <div class="loading-text">กำลังตรวจสอบเส้นทางเครือข่าย...</div>
             <div class="loading-subtext">ระบบกำลังเชื่อมต่อ... กรุณารอสักครู่...</div>
         </div>
@@ -230,9 +255,24 @@
 
     <script>
         async function navigateTo(targetUrl, fallbackUrl) {
+            // 1. ซ่อนเมนู และโชว์หน้าโหลด
             document.getElementById('main-menu').style.display = 'none';
             document.getElementById('loading-screen').style.display = 'flex';
 
+            // 2. จัดการตัวเลขแสดงผล (เริ่มที่ 10)
+            let count = 10;
+            const countDisplay = document.getElementById('countdown');
+            countDisplay.innerText = count;
+            
+            // ให้ตัวเลขลดลงทีละ 1 ทุกๆ 1 วินาที (แค่เพื่อความสวยงามทางสายตา)
+            const timerInterval = setInterval(() => {
+                count--;
+                if (count >= 0) {
+                    countDisplay.innerText = count;
+                }
+            }, 1000);
+
+            // 3. ลอจิกการตรวจสอบเน็ตเวิร์กของเดิม (ไม่ถูกแก้ไข)
             const timeout = (ms) => new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), ms));
 
             try {
@@ -245,8 +285,10 @@
                     timeout(3500)
                 ]);
 
+                clearInterval(timerInterval); // หยุดตัวนับเมื่อโหลดเสร็จ
                 window.location.href = targetUrl;
             } catch (e) {
+                clearInterval(timerInterval); // หยุดตัวนับเมื่อโหลดเสร็จ
                 window.location.href = fallbackUrl;
             }
         }
