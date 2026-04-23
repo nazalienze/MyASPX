@@ -112,6 +112,16 @@
             box-shadow: 0 12px 25px rgba(46, 125, 50, 0.35);
         }
 
+        /* 🔥 สีปุ่มระบบครุภัณฑ์ (น้ำเงินสว่าง-น้ำเงินเข้ม) */
+        .btn-asset {
+            background: linear-gradient(135deg, #0277BD 0%, #01579B 100%);
+            box-shadow: 0 8px 20px rgba(1, 87, 155, 0.25);
+        }
+        .btn-asset:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 25px rgba(1, 87, 155, 0.35);
+        }
+
         /* ⭐️ ส่วนข้อความติดต่อเบอร์ 1405 ⭐️ */
         .footer-contact {
             margin-top: 35px;
@@ -153,7 +163,6 @@
             padding: 20px 0;
         }
 
-        /* กล่องครอบวงกลมและตัวเลข */
         .loader-wrapper {
             position: relative;
             width: 75px;
@@ -164,7 +173,6 @@
             justify-content: center;
         }
 
-        /* วงกลมหมุนๆ */
         .loader {
             position: absolute;
             top: 0;
@@ -178,12 +186,11 @@
             box-sizing: border-box;
         }
 
-        /* ตัวเลขนับถอยหลังตรงกลาง */
         .countdown-number {
             font-size: 1.5rem;
             font-weight: 700;
             color: #0A6E31;
-            z-index: 2; /* ให้อยู่เหนือวงกลม */
+            z-index: 2;
         }
 
         @keyframes spin {
@@ -218,7 +225,7 @@
         <div id="main-menu">
             <i class="fas fa-hospital-user logo-icon"></i>
             <h1 class="title">ระบบแจ้งปัญหาการใช้งาน</h1>
-            <p class="subtitle">สถาบันราชประชาสมาสัย (RPSI Helpdesk)<br/>กรุณาเลือกระบบที่ท่านต้องการแจ้งซ่อม</p>
+            <p class="subtitle">สถาบันราชประชาสมาสัย (RPSI Helpdesk)<br/>กรุณาเลือกระบบที่ท่านต้องการดำเนินการ</p>
             
             <div class="btn-grid">
                 <button class="btn-service btn-electrical" onclick="navigateTo(
@@ -233,6 +240,13 @@
                     'http://10.10.5.103/Rpsi_pages/it/index.aspx'
                 )">
                     <i class="fas fa-laptop-medical"></i> แจ้งปัญหาระบบคอมพิวเตอร์
+                </button>
+
+                <button class="btn-service btn-asset" onclick="navigateTo(
+                    'https://rajpracha.ddc.moph.go.th/Rpsi_pages/rpsiasset/index.aspx', 
+                    'http://10.10.5.103/Rpsi_pages/rpsiasset/index.aspx'
+                )">
+                    <i class="fas fa-boxes"></i> ระบบบริหารจัดการครุภัณฑ์ (ช่วงทดสอบระบบ)
                 </button>
             </div>
 
@@ -264,7 +278,6 @@
             const countDisplay = document.getElementById('countdown');
             countDisplay.innerText = count;
             
-            // ให้ตัวเลขลดลงทีละ 1 ทุกๆ 1 วินาที (แค่เพื่อความสวยงามทางสายตา)
             const timerInterval = setInterval(() => {
                 count--;
                 if (count >= 0) {
@@ -272,7 +285,7 @@
                 }
             }, 1000);
 
-            // 3. ลอจิกการตรวจสอบเน็ตเวิร์กของเดิม (ไม่ถูกแก้ไข)
+            // 3. ตรวจสอบเน็ตเวิร์ก
             const timeout = (ms) => new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), ms));
 
             try {
@@ -285,10 +298,10 @@
                     timeout(3500)
                 ]);
 
-                clearInterval(timerInterval); // หยุดตัวนับเมื่อโหลดเสร็จ
+                clearInterval(timerInterval);
                 window.location.href = targetUrl;
             } catch (e) {
-                clearInterval(timerInterval); // หยุดตัวนับเมื่อโหลดเสร็จ
+                clearInterval(timerInterval);
                 window.location.href = fallbackUrl;
             }
         }
